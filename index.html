@@ -56,7 +56,7 @@
   .muted{color:var(--muted)}
 
   /* Console */
-  .console{display:flex;flex-direction:column;gap:10px;height:520px}
+  .console{display:flex;flex-direction:column;gap:10px;height:560px}
   .log{flex:1;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--panel2)}
   .msg{display:flex;gap:10px;margin-bottom:10px}
   .bubble{max-width:92%;padding:10px 12px;border-radius:12px}
@@ -65,6 +65,11 @@
   .inputRow{display:flex;gap:8px}
   .input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#0F1530;color:var(--text)}
   .input:focus{outline:2px solid var(--primary);outline-offset:2px}
+
+  /* Quick Questions */
+  .quick{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0));border-radius:999px;padding:7px 10px;color:var(--text);cursor:pointer;font-size:13px}
+  .chip:focus{outline:2px solid var(--primary);outline-offset:2px}
 
   /* KPI panel */
   .tabs{display:flex;gap:8px;margin-bottom:10px}
@@ -85,7 +90,8 @@
   .check{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)}
   .dot{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px rgba(32,201,151,.18)}
 
-  /* Teaser & footer */
+  /* Founders + Teaser */
+  .founders{margin:16px 0;border:2px solid var(--accent);background:linear-gradient(180deg,rgba(111,66,193,.12),rgba(111,66,193,.03));border-radius:14px;padding:14px}
   .teaser{margin:16px 0;border:1px dashed var(--border);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(255,255,255,.03)}
 </style>
 </head>
@@ -116,6 +122,10 @@
           <input id="q" class="input" type="text" aria-label="Prompt" placeholder="What's our fraud loss reduction potential if we double review budget?"/>
           <button id="ask" class="btn" aria-label="Ask">Ask</button>
         </div>
+        <div>
+          <div class="muted" style="font-size:12px;margin-bottom:6px">Or click a quick question:</div>
+          <div id="quick" class="quick" role="listbox" aria-label="Quick questions"></div>
+        </div>
         <div class="muted" style="font-size:12px">All inference is local. No external calls. Auditable logs enabled.</div>
       </div>
     </div>
@@ -140,7 +150,10 @@
     <div id="guardrails" class="checklist"></div>
   </section>
 
-  <!-- Teaser -->
+  <!-- Founders + Teaser -->
+  <div class="founders" role="note" aria-label="Founders deal">
+    <strong>Founders deal:</strong> 30% upfront with milestone deliveries. First 5 get <strong>15% off</strong> + <strong>1 year support</strong>.
+  </div>
   <div class="teaser" role="region" aria-label="Next step">
     <div><strong>Next:</strong> Profitability Impact Explorer — model your savings, ROI, and break-even.</div>
     <a class="btn" href="PASTE_NEXT_URL_HERE">Open ROI Explorer</a>
@@ -149,12 +162,17 @@
 
 <script>
 // ───────────────────────────────────────────────────────────
-// Industry model — KPIs, sources, responses, guardrails
+// Industry model — KPIs, sources, responses, guardrails, quick Qs
 // ───────────────────────────────────────────────────────────
 const INDUSTRIES = {
   banking: {
     name:'Banking',
     example:"What's our fraud loss reduction potential if we double review budget?",
+    quick:[
+      "How many GPUs to cut chargebacks by 20%?",
+      "Which segments give us safest approval lift?",
+      "Show ROI if analyst headcount +10%"
+    ],
     kpis:[
       { key:'fraud', label:'Fraud Savings', val:2.8, unit:'$M', badge:'g', src:'Card disputes, chargebacks, reviewer outcomes' },
       { key:'ops', label:'Ops Savings', val:1.4, unit:'$M', badge:'g', src:'Queue automation, case triage, model‑assisted review' },
@@ -169,6 +187,11 @@ const INDUSTRIES = {
   retail: {
     name:'Retail',
     example:'If we add product‑return verification at point of sale, what’s the shrink reduction?',
+    quick:[
+      "What’s shrink savings if RFID added in DC?",
+      "Which stores need associate‑assist the most?",
+      "Forecast ROI if returns drop 15%"
+    ],
     kpis:[
       { key:'fraud', label:'Shrink Reduction', val:1.1, unit:'$M', badge:'g', src:'Returns risk, receipt matching, CCTV summaries' },
       { key:'ops', label:'Ops Savings', val:0.7, unit:'$M', badge:'g', src:'Store associate workflow time saved' },
@@ -183,6 +206,11 @@ const INDUSTRIES = {
   legal: {
     name:'Legal',
     example:'What’s the cycle‑time reduction if we deploy contract clause extraction across matters?',
+    quick:[
+      "Where do we lose most review hours?",
+      "What clauses have lowest precision today?",
+      "Break‑even if GPU spend +20%"
+    ],
     kpis:[
       { key:'fraud', label:'Review Hours Saved', val:28, unit:'k', badge:'g', src:'Matter logs, clause recall/precision benchmarks' },
       { key:'ops', label:'Ops Savings', val:2.2, unit:'$M', badge:'g', src:'Paralegal/associate time recaptured' },
@@ -228,7 +256,17 @@ function setIndustry(id){
     row.innerHTML = `<span class="dot" aria-hidden="true"></span><span>${text}</span>`;
     g.appendChild(row);
   });
-  // seed console with a helpful hint
+  // quick questions
+  const quick = $('#quick'); quick.innerHTML='';
+  cfg.quick.forEach((qtxt,i)=>{
+    const b = document.createElement('button');
+    b.className='chip'; b.setAttribute('role','option'); b.setAttribute('aria-label', qtxt);
+    b.textContent = qtxt;
+    b.addEventListener('click',()=> askFrom(qtxt));
+    b.addEventListener('keydown',e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); askFrom(qtxt);} });
+    quick.appendChild(b);
+  });
+  // seed console placeholder
   $('#q').placeholder = cfg.example;
 }
 
@@ -253,9 +291,11 @@ function appendMsg(who, txt){
 function ask(){
   const q = $('#q');
   const text = q.value.trim() || INDUSTRIES[current].example;
+  askFrom(text);
+}
+function askFrom(text){
   appendMsg('you', text);
-  q.value=''; q.focus();
-  // choose an industry answer
+  $('#q').value=''; $('#q').focus();
   const a = INDUSTRIES[current].answer;
   setTimeout(()=> appendMsg('ai', a), 220);
 }
@@ -289,7 +329,7 @@ $('#q').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault()
 
 // Init
 setIndustry('banking');
-appendMsg('ai', 'Welcome to the Veltrax Control Room. Ask a business question on the left — KPIs on the right update by industry context.');
+appendMsg('ai', 'Welcome to the Veltrax Control Room. Ask a business question on the left — or click a quick question. KPIs on the right update by industry context.');
 </script>
 </body>
 </html>
