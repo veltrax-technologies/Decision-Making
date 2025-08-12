@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Veltrax — Private LLM Business Control Room</title>
+<style>
+  /* ─────────────────────────────────────────────
+     Veltrax dark executive palette
+     ───────────────────────────────────────────── */
+  :root{
+    --bg:#0F1220;           /* background */
+    --text:#E6E7EB;         /* primary text */
+    --muted:#A9B1C3;        /* secondary text */
+    --panel:#121832;        /* card background */
+    --panel2:#0F1633;       /* alt card */
+    --border:#22304F;       /* borders */
+    --accent:#6F42C1;       /* purple */
+    --primary:#0066FF;      /* blue */
+    --good:#20C997;         /* green */
+    --warn:#FFB454;         /* yellow */
+    --bad:#FF6B6B;          /* red */
+  }
+  .light:root{
+    --bg:#F7F9FC; --text:#1B2430; --muted:#5A6B83; --panel:#FFFFFF; --panel2:#F4F7FE; --border:#D9E2EF; --accent:#6F42C1; --primary:#2257FF;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif}
+  a{color:var(--primary);text-decoration:none}
+
+  /* Header */
+  header{position:sticky;top:0;z-index:30;background:linear-gradient(to bottom,rgba(2,6,23,.7),rgba(2,6,23,.2)),var(--panel);border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center;padding:12px 16px}
+  .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--primary))}
+  .title{font-weight:800;letter-spacing:.2px}
+  .spacer{flex:1}
+  .btn{border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0));padding:9px 12px;border-radius:10px;color:var(--text);cursor:pointer}
+  .btn:hover{filter:brightness(1.06)}
+
+  /* Popover */
+  .popover{position:relative}
+  .menu{position:absolute;right:0;top:42px;min-width:200px;background:var(--panel);border:1px solid var(--border);border-radius:12px;display:none;box-shadow:0 12px 32px rgba(0,0,0,.35)}
+  .menu.open{display:block}
+  .menu button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;background:transparent;color:var(--text);cursor:pointer}
+  .menu button:hover{background:rgba(255,255,255,.05)}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:16px}
+
+  /* Main split */
+  .split{display:grid;grid-template-columns:1fr;gap:16px}
+  @media (min-width:1024px){ .split{grid-template-columns:1.1fr 0.9fr} }
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px}
+  h1{margin:0 0 8px 0;font-size:22px}
+  h2{margin:0 0 10px 0}
+  .muted{color:var(--muted)}
+
+  /* Console */
+  .console{display:flex;flex-direction:column;gap:10px;height:520px}
+  .log{flex:1;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--panel2)}
+  .msg{display:flex;gap:10px;margin-bottom:10px}
+  .bubble{max-width:92%;padding:10px 12px;border-radius:12px}
+  .you{background:rgba(0,102,255,.18);border:1px solid #1d4ed8}
+  .ai{background:rgba(111,66,193,.18);border:1px solid rgba(111,66,193,.6)}
+  .inputRow{display:flex;gap:8px}
+  .input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#0F1530;color:var(--text)}
+  .input:focus{outline:2px solid var(--primary);outline-offset:2px}
+
+  /* KPI panel */
+  .tabs{display:flex;gap:8px;margin-bottom:10px}
+  .tab{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0));cursor:pointer}
+  .tab[aria-selected="true"]{outline:2px solid var(--accent)}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .tile{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px}
+  .tile h3{margin:0 0 6px 0;font-size:14px}
+  .val{font-size:24px;font-weight:800}
+  .badge{display:inline-block;padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.15);font-size:12px;font-weight:800}
+  .g{background:rgba(32,201,151,.18);color:#9CF0D5;border-color:rgba(32,201,151,.45)}
+  .y{background:rgba(255,180,84,.2);color:#FFE1AF;border-color:rgba(255,180,84,.45)}
+  .r{background:rgba(255,107,107,.2);color:#FFC2C2;border-color:rgba(255,107,107,.45)}
+  .src{color:var(--muted);font-size:12px;margin-top:4px}
+
+  /* Security checklist */
+  .checklist{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .check{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px rgba(32,201,151,.18)}
+
+  /* Teaser & footer */
+  .teaser{margin:16px 0;border:1px dashed var(--border);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(255,255,255,.03)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo" aria-hidden="true"></div>
+  <div class="title">Veltrax — Private LLM Business Control Room</div>
+  <div class="spacer"></div>
+  <div class="popover">
+    <button id="industriesBtn" class="btn" aria-haspopup="menu" aria-expanded="false" aria-controls="indMenu">Industries ▾</button>
+    <div id="indMenu" role="menu" class="menu" aria-label="Industries">
+      <button role="menuitem" data-industry="banking">Banking</button>
+      <button role="menuitem" data-industry="retail">Retail</button>
+      <button role="menuitem" data-industry="legal">Legal</button>
+    </div>
+  </div>
+  <button id="theme" class="btn" aria-label="Toggle theme">Theme</button>
+</header>
+
+<main class="wrap">
+  <section class="split" aria-label="Console and KPIs">
+    <!-- Left: Console -->
+    <div class="card" aria-label="LLM console">
+      <h1>Ask anything. Decide instantly — without risking IP/data.</h1>
+      <div id="console" class="console" role="region" aria-label="Chat console">
+        <div id="log" class="log" role="log" aria-live="polite"></div>
+        <div class="inputRow">
+          <input id="q" class="input" type="text" aria-label="Prompt" placeholder="What's our fraud loss reduction potential if we double review budget?"/>
+          <button id="ask" class="btn" aria-label="Ask">Ask</button>
+        </div>
+        <div class="muted" style="font-size:12px">All inference is local. No external calls. Auditable logs enabled.</div>
+      </div>
+    </div>
+
+    <!-- Right: KPI Panel with Tabs -->
+    <div class="card" aria-label="KPI panel">
+      <div class="tabs" role="tablist" aria-label="Industry tabs">
+        <button role="tab" id="tab-banking" class="tab" aria-selected="true" data-industry="banking" aria-controls="panelKpis">Banking</button>
+        <button role="tab" id="tab-retail" class="tab" aria-selected="false" data-industry="retail" aria-controls="panelKpis">Retail</button>
+        <button role="tab" id="tab-legal" class="tab" aria-selected="false" data-industry="legal" aria-controls="panelKpis">Legal</button>
+      </div>
+      <div id="panelKpis" role="tabpanel" aria-labelledby="tab-banking">
+        <div class="kpis" id="kpis"></div>
+        <div id="kpiSrc" class="src"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security checklist -->
+  <section class="card" aria-label="Model security">
+    <h2>Model Security</h2>
+    <div id="guardrails" class="checklist"></div>
+  </section>
+
+  <!-- Teaser -->
+  <div class="teaser" role="region" aria-label="Next step">
+    <div><strong>Next:</strong> Profitability Impact Explorer — model your savings, ROI, and break-even.</div>
+    <a class="btn" href="PASTE_NEXT_URL_HERE">Open ROI Explorer</a>
+  </div>
+</main>
+
+<script>
+// ───────────────────────────────────────────────────────────
+// Industry model — KPIs, sources, responses, guardrails
+// ───────────────────────────────────────────────────────────
+const INDUSTRIES = {
+  banking: {
+    name:'Banking',
+    example:"What's our fraud loss reduction potential if we double review budget?",
+    kpis:[
+      { key:'fraud', label:'Fraud Savings', val:2.8, unit:'$M', badge:'g', src:'Card disputes, chargebacks, reviewer outcomes' },
+      { key:'ops', label:'Ops Savings', val:1.4, unit:'$M', badge:'g', src:'Queue automation, case triage, model‑assisted review' },
+      { key:'lift', label:'Approval Lift', val:3.2, unit:'pp', badge:'y', src:'A/B approvals with RAG explanations' },
+      { key:'roi', label:'Forecast ROI (12m)', val:218, unit:'%', badge:'g', src:'Cost vs savings model v24.10' }
+    ],
+    guards:[
+      'Runs locally on bank‑owned GPUs','No external calls (internet egress blocked)','PCI/PII stays on‑prem','Immutable audit logs (exportable)'
+    ],
+    answer: `Scenario: doubling manual review budget adds 18 FTE‑equivalents.\n• Expected fraud loss reduction: ~$3.1M (chargebacks avoided, better segmentation).\n• Net ops impact: +$0.4M cost, offset by $0.9M reviewer assist → +$0.5M ops savings.\n• Portfolio approval lift stays within 2.5–3.5pp with guardrails.\nBottom line: +$3.6M annual profit delta. Payback < 3 months.`
+  },
+  retail: {
+    name:'Retail',
+    example:'If we add product‑return verification at point of sale, what’s the shrink reduction?',
+    kpis:[
+      { key:'fraud', label:'Shrink Reduction', val:1.1, unit:'$M', badge:'g', src:'Returns risk, receipt matching, CCTV summaries' },
+      { key:'ops', label:'Ops Savings', val:0.7, unit:'$M', badge:'g', src:'Store associate workflow time saved' },
+      { key:'lift', label:'Approval Lift', val:1.8, unit:'pp', badge:'g', src:'Fewer false declines, loyalty segmentation' },
+      { key:'roi', label:'Forecast ROI (12m)', val:164, unit:'%', badge:'g', src:'Shrink + labor vs TCO' }
+    ],
+    guards:[
+      'Edge inference in store or DC','No vendor LLM APIs','Customer PII stays on‑prem','Audit trail ties to POS events'
+    ],
+    answer: `Adding POS verification reduces fraudulent returns by ~22% in pilot‑like cohorts → ~$1.1M shrink savings.\nOps saves ~$0.3M from faster exceptions; combined with loyalty‑aware approvals, net ROI ~164% in year 1.`
+  },
+  legal: {
+    name:'Legal',
+    example:'What’s the cycle‑time reduction if we deploy contract clause extraction across matters?',
+    kpis:[
+      { key:'fraud', label:'Review Hours Saved', val:28, unit:'k', badge:'g', src:'Matter logs, clause recall/precision benchmarks' },
+      { key:'ops', label:'Ops Savings', val:2.2, unit:'$M', badge:'g', src:'Paralegal/associate time recaptured' },
+      { key:'lift', label:'Approval Lift', val:0.0, unit:'pp', badge:'g', src:'—' },
+      { key:'roi', label:'Forecast ROI (12m)', val:186, unit:'%', badge:'g', src:'Time saved vs seats + GPUs' }
+    ],
+    guards:[
+      'Work product never leaves firm VLAN','No external calls','Privileged docs encrypted at rest','Every query logged for QA'
+    ],
+    answer: `Clause extraction at scale removes ~28k review hours annually.\nMatters close ~14 days sooner on average.\nSavings ~$2.2M post‑deployment; ROI ~186% with on‑prem GPUs.`
+  }
+};
+
+let current = 'banking';
+
+// DOM helpers
+const $ = (q,el=document)=>el.querySelector(q);
+const log = $('#log');
+
+function setIndustry(id){
+  current = id; // tabs
+  ['banking','retail','legal'].forEach(k=>{
+    const el = $('#tab-'+k);
+    if(!el) return;
+    el.setAttribute('aria-selected', k===id ? 'true' : 'false');
+    if(k===id) $('#panelKpis').setAttribute('aria-labelledby','tab-'+k);
+  });
+  // KPI tiles
+  const cfg = INDUSTRIES[id];
+  const kpis = $('#kpis'); kpis.innerHTML='';
+  cfg.kpis.forEach(k=>{
+    const tile = document.createElement('div');
+    tile.className='tile'; tile.setAttribute('role','status'); tile.setAttribute('aria-label', k.label);
+    tile.innerHTML = `<h3>${k.label} <span class="badge ${k.badge}">${k.badge==='g'?'Good':k.badge==='y'?'Watch':'Risk'}</span></h3>
+      <div class="val">${k.val}<span style="font-size:14px;opacity:.8">${k.unit}</span></div>
+      <div class="src">Source: ${k.src}</div>`;
+    kpis.appendChild(tile);
+  });
+  // guardrails
+  const g = $('#guardrails'); g.innerHTML='';
+  cfg.guards.forEach(text=>{
+    const row = document.createElement('div'); row.className='check';
+    row.innerHTML = `<span class="dot" aria-hidden="true"></span><span>${text}</span>`;
+    g.appendChild(row);
+  });
+  // seed console with a helpful hint
+  $('#q').placeholder = cfg.example;
+}
+
+// Streaming simulation
+function appendMsg(who, txt){
+  const row = document.createElement('div'); row.className='msg';
+  const bubble = document.createElement('div'); bubble.className='bubble ' + (who==='you'?'you':'ai');
+  bubble.setAttribute('role','article'); bubble.setAttribute('aria-label', who==='you'?'Your message':'Model response');
+  row.appendChild(bubble); log.appendChild(row); log.scrollTop = log.scrollHeight;
+
+  if(who==='ai'){
+    let i=0; const timer = setInterval(()=>{
+      bubble.textContent = txt.slice(0, ++i);
+      log.scrollTop = log.scrollHeight;
+      if(i>=txt.length) clearInterval(timer);
+    }, 15);
+  } else {
+    bubble.textContent = txt;
+  }
+}
+
+function ask(){
+  const q = $('#q');
+  const text = q.value.trim() || INDUSTRIES[current].example;
+  appendMsg('you', text);
+  q.value=''; q.focus();
+  // choose an industry answer
+  const a = INDUSTRIES[current].answer;
+  setTimeout(()=> appendMsg('ai', a), 220);
+}
+
+// Tabs interactions (click + keyboard arrows)
+['banking','retail','legal'].forEach(k=>{
+  const t = $('#tab-'+k);
+  t.addEventListener('click', ()=>setIndustry(k));
+  t.addEventListener('keydown', e=>{
+    const order=['banking','retail','legal'];
+    let idx = order.indexOf(current);
+    if(e.key==='ArrowRight'){ idx=(idx+1)%order.length; setIndustry(order[idx]); t.blur(); $('#tab-'+order[idx]).focus(); }
+    if(e.key==='ArrowLeft'){ idx=(idx-1+order.length)%order.length; setIndustry(order[idx]); t.blur(); $('#tab-'+order[idx]).focus(); }
+  });
+});
+
+// Top popover
+const popBtn = $('#industriesBtn'); const menu = $('#indMenu');
+popBtn.addEventListener('click', ()=>{
+  const open = menu.classList.toggle('open');
+  popBtn.setAttribute('aria-expanded', open?'true':'false');
+});
+menu.querySelectorAll('button').forEach(b=> b.addEventListener('click', ()=>{ setIndustry(b.dataset.industry); menu.classList.remove('open'); popBtn.setAttribute('aria-expanded','false'); }));
+
+// Theme
+$('#theme').addEventListener('click',()=> document.documentElement.classList.toggle('light'));
+
+// Console events
+$('#ask').addEventListener('click', ask);
+$('#q').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); ask(); }});
+
+// Init
+setIndustry('banking');
+appendMsg('ai', 'Welcome to the Veltrax Control Room. Ask a business question on the left — KPIs on the right update by industry context.');
+</script>
+</body>
+</html>
