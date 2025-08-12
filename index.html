@@ -21,9 +21,6 @@
     --warn:#FFB454;         /* yellow */
     --bad:#FF6B6B;          /* red */
   }
-  .light:root{
-    --bg:#F7F9FC; --text:#1B2430; --muted:#5A6B83; --panel:#FFFFFF; --panel2:#F4F7FE; --border:#D9E2EF; --accent:#6F42C1; --primary:#2257FF;
-  }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif}
@@ -36,13 +33,6 @@
   .spacer{flex:1}
   .btn{border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0));padding:9px 12px;border-radius:10px;color:var(--text);cursor:pointer}
   .btn:hover{filter:brightness(1.06)}
-
-  /* Popover */
-  .popover{position:relative}
-  .menu{position:absolute;right:0;top:42px;min-width:200px;background:var(--panel);border:1px solid var(--border);border-radius:12px;display:none;box-shadow:0 12px 32px rgba(0,0,0,.35)}
-  .menu.open{display:block}
-  .menu button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;background:transparent;color:var(--text);cursor:pointer}
-  .menu button:hover{background:rgba(255,255,255,.05)}
 
   .wrap{max-width:1200px;margin:0 auto;padding:16px}
 
@@ -73,7 +63,7 @@
 
   /* KPI panel */
   .tabs{display:flex;gap:8px;margin-bottom:10px}
-  .tab{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0));cursor:pointer}
+  .tab{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0));cursor:pointer;color:var(--text);}
   .tab[aria-selected="true"]{outline:2px solid var(--accent)}
   .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .tile{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px}
@@ -100,15 +90,7 @@
   <div class="logo" aria-hidden="true"></div>
   <div class="title">Veltrax — Private LLM Business Control Room</div>
   <div class="spacer"></div>
-  <div class="popover">
-    <button id="industriesBtn" class="btn" aria-haspopup="menu" aria-expanded="false" aria-controls="indMenu">Industries ▾</button>
-    <div id="indMenu" role="menu" class="menu" aria-label="Industries">
-      <button role="menuitem" data-industry="banking">Banking</button>
-      <button role="menuitem" data-industry="retail">Retail</button>
-      <button role="menuitem" data-industry="legal">Legal</button>
-    </div>
-  </div>
-  <button id="theme" class="btn" aria-label="Toggle theme">Theme</button>
+  <!-- Removed Industries & Theme buttons by request -->
 </header>
 
 <main class="wrap">
@@ -169,7 +151,9 @@ const INDUSTRIES = {
     name:'Banking',
     example:"What's our fraud loss reduction potential if we double review budget?",
     quick:[
+      "How many GPUs to cut chargebacks by 20%?",
       "Which segments give us safest approval lift?",
+      "Show ROI if analyst headcount +10%"
     ],
     kpis:[
       { key:'fraud', label:'Fraud Savings', val:2.8, unit:'$M', badge:'g', src:'Card disputes, chargebacks, reviewer outcomes' },
@@ -186,7 +170,9 @@ const INDUSTRIES = {
     name:'Retail',
     example:'If we add product‑return verification at point of sale, what’s the shrink reduction?',
     quick:[
+      "What’s shrink savings if RFID added in DC?",
       "Which stores need associate‑assist the most?",
+      "Forecast ROI if returns drop 15%"
     ],
     kpis:[
       { key:'fraud', label:'Shrink Reduction', val:1.1, unit:'$M', badge:'g', src:'Returns risk, receipt matching, CCTV summaries' },
@@ -204,6 +190,8 @@ const INDUSTRIES = {
     example:'What’s the cycle‑time reduction if we deploy contract clause extraction across matters?',
     quick:[
       "Where do we lose most review hours?",
+      "What clauses have lowest precision today?",
+      "Break‑even if GPU spend +20%"
     ],
     kpis:[
       { key:'fraud', label:'Review Hours Saved', val:28, unit:'k', badge:'g', src:'Matter logs, clause recall/precision benchmarks' },
@@ -305,21 +293,6 @@ function askFrom(text){
     if(e.key==='ArrowLeft'){ idx=(idx-1+order.length)%order.length; setIndustry(order[idx]); t.blur(); $('#tab-'+order[idx]).focus(); }
   });
 });
-
-// Top popover
-const popBtn = $('#industriesBtn'); const menu = $('#indMenu');
-popBtn.addEventListener('click', ()=>{
-  const open = menu.classList.toggle('open');
-  popBtn.setAttribute('aria-expanded', open?'true':'false');
-});
-menu.querySelectorAll('button').forEach(b=> b.addEventListener('click', ()=>{ setIndustry(b.dataset.industry); menu.classList.remove('open'); popBtn.setAttribute('aria-expanded','false'); }));
-
-// Theme
-$('#theme').addEventListener('click',()=> document.documentElement.classList.toggle('light'));
-
-// Console events
-$('#ask').addEventListener('click', ask);
-$('#q').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); ask(); }});
 
 // Init
 setIndustry('banking');
