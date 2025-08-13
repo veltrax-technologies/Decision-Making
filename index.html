@@ -109,6 +109,7 @@
           <div id="quick" class="quick" role="listbox" aria-label="Quick questions"></div>
         </div>
         <div class="muted" style="font-size:12px">All inference is local. No external calls. Auditable logs enabled.</div>
+        <div class="muted" style="font-size:12px">Demo note: this shows a single illustrative response; the live system supports multi‑turn what‑ifs, drill‑downs, and evidence exports.</div>
       </div>
     </div>
 
@@ -163,7 +164,7 @@ const INDUSTRIES = {
     guards:[
       'Runs locally on bank‑owned GPUs','No external calls (internet egress blocked)','PCI/PII stays on‑prem','Immutable audit logs (exportable)'
     ],
-    answer: `Scenario: doubling manual review budget adds 18 FTE‑equivalents.\n• Expected fraud loss reduction: ~$3.1M (chargebacks avoided, better segmentation).\n• Net ops impact: +$0.4M cost, offset by $0.9M reviewer assist → +$0.5M ops savings.\n• Portfolio approval lift stays within 2.5–3.5pp with guardrails.\nBottom line: +$3.6M annual profit delta. Payback < 3 months.`
+    answer: `Executive readout — Double review budget (≈ +18 FTE‑equivalents)\n\nWhat changes:\n• Reviewer Assist routes only edge cases; low‑risk auto‑approve stays intact.\n• Triage pushes first‑party fraud to self‑serve; chargeback evidence auto‑assembled.\n\nModeled impact (12m):\n• Fraud loss reduction: ~$3.0–$3.6M via better segmentation & dispute win‑rate (+6–9pp).\n• Approval lift: +2.7pp (2.3–3.5pp band) on safe cohorts → ~$2.1M incremental revenue @45% margin → ~$0.95M profit.\n• Ops delta: +$0.4M labor, offset by ~$0.9M automation → +$0.5M net ops savings.\n\nNet effect:\n• Annual profit +$3.6–$4.1M; payback < 3 months; p95 decision latency < 2.5s.\n\nNext best actions:\n1) Roll out to “low‑risk/everyday spend” first; cap lift at +3.5pp.\n2) Add reviewer quality loops; weekly drift checks.\n3) Switch SaaS LLM calls to local inference to remove per‑call exposure/cost.\n\nNote: This demo shows one concise response; the live system supports multi‑turn what‑ifs and exports evidence (queries, cohort defs, and hash‑chained logs).`
   },
   retail: {
     name:'Retail',
@@ -181,7 +182,7 @@ const INDUSTRIES = {
     guards:[
       'Edge inference in store or DC','No vendor LLM APIs','Customer PII stays on‑prem','Audit trail ties to POS events'
     ],
-    answer: `Adding POS verification reduces fraudulent returns by ~22% in pilot‑like cohorts → ~$1.1M shrink savings.\nOps saves ~$0.3M from faster exceptions; combined with loyalty‑aware approvals, net ROI ~164% in year 1.`
+    answer: `Executive readout — POS return verification\n\nWhat we change:\n• Real‑time return scoring (receipt match, device graph, historical behavior).\n• Camera snippet → LLM summary for high‑risk only; rest pass‑through.\n\nImpact (12m):\n• Shrink reduction: ~20–25% in pilot‑like stores → ~$1.0–$1.3M.\n• Ops savings: ~90k associate minutes avoided → ~$0.3–$0.4M.\n• Checkout approvals: false declines −12–18% → +$0.4–$0.6M contribution.\n\nNet:\n• Year‑one impact ~$1.7–$2.3M; ROI > 150% on typical fleet.\n\nNext best actions:\n1) Start with top 50 stores by shrink.\n2) Add loyalty‑aware overrides to protect CX.\n3) Weekly audit: 50 sampled cases with explanations and evidence bundles.\n\nNote: Single illustrative response; live system supports store‑level drill‑downs and evidence exports.`
   },
   legal: {
     name:'Legal',
@@ -199,7 +200,7 @@ const INDUSTRIES = {
     guards:[
       'Work product never leaves firm VLAN','No external calls','Privileged docs encrypted at rest','Every query logged for QA'
     ],
-    answer: `Clause extraction at scale removes ~28k review hours annually.\nMatters close ~14 days sooner on average.\nSavings ~$2.2M post‑deployment; ROI ~186% with on‑prem GPUs.`
+    answer: `Executive readout — Contract clause extraction at scale\n\nWhat’s deployed:\n• Local LLMs extract/normalize ~120 canonical clauses; RAG against firm precedent.\n• Confidence routing sends low‑confidence to associates with inline citations.\n\nImpact (12m):\n• Review hours saved: ~24k–32k; cycle time −12–16 days/matter.\n• Error rate: clause recall +9–12pp; standardized playbooks reduce rework.\n• Ops savings: ~$1.8–$2.4M equivalent; throughput improves without increasing headcount.\n\nNet:\n• Modeled ROI ~170–200% with on‑prem GPUs; partner time reallocated to higher‑value work.\n\nNext best actions:\n1) Prioritize NDA/MSA templates; then top 10 bespoke riders.\n2) Monthly calibration set with redlines to tune precision.\n3) Turn on immutable audit packet for client‑facing assurance.\n\nNote: Single illustrative response; live system supports matter‑level drill‑downs and evidence exports.`
   }
 };
 
