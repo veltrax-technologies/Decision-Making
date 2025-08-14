@@ -49,7 +49,7 @@
   .console{display:flex;flex-direction:column;gap:10px;height:560px}
   .log{flex:1;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--panel2)}
   .msg{display:flex;gap:10px;margin-bottom:10px}
-  .bubble{max-width:92%;padding:10px 12px;border-radius:12px}
+  .bubble{max-width:92%;padding:10px 12px;border-radius:12px;white-space:pre-wrap}
   .you{background:rgba(0,102,255,.18);border:1px solid #1d4ed8}
   .ai{background:rgba(111,66,193,.18);border:1px solid rgba(111,66,193,.6)}
   .inputRow{display:flex;gap:8px}
@@ -109,7 +109,7 @@
           <div id="quick" class="quick" role="listbox" aria-label="Quick questions"></div>
         </div>
         <div class="muted" style="font-size:12px">All inference is local. No external calls. Auditable logs enabled.</div>
-        <div class="muted" style="font-size:12px">Demo note: this shows a single illustrative response; the live system supports multi‑turn what‑ifs, drill‑downs, and evidence exports.</div>
+        <div class="muted" style="font-size:12px">Demo note: responses are illustrative and action‑oriented; the live system supports multi‑turn what‑ifs, drill‑downs, and evidence exports.</div>
       </div>
     </div>
 
@@ -153,7 +153,8 @@ const INDUSTRIES = {
     example:"What's our fraud loss reduction potential if we double review budget?",
     quick:[
       "Which segments give us safest approval lift?",
-      "Show ROI if analyst headcount +10%"
+      "Show ROI if analyst headcount +10%",
+      "How do we cut chargeback loss rate by 20%?"
     ],
     kpis:[
       { key:'fraud', label:'Fraud Savings', val:2.8, unit:'$M', badge:'g', src:'Card disputes, chargebacks, reviewer outcomes' },
@@ -164,14 +165,19 @@ const INDUSTRIES = {
     guards:[
       'Runs locally on bank‑owned GPUs','No external calls (internet egress blocked)','PCI/PII stays on‑prem','Immutable audit logs (exportable)'
     ],
-    answer: `Executive readout — Double review budget (≈ +18 FTE‑equivalents)\n\nWhat changes:\n• Reviewer Assist routes only edge cases; low‑risk auto‑approve stays intact.\n• Triage pushes first‑party fraud to self‑serve; chargeback evidence auto‑assembled.\n\nModeled impact (12m):\n• Fraud loss reduction: ~$3.0–$3.6M via better segmentation & dispute win‑rate (+6–9pp).\n• Approval lift: +2.7pp (2.3–3.5pp band) on safe cohorts → ~$2.1M incremental revenue @45% margin → ~$0.95M profit.\n• Ops delta: +$0.4M labor, offset by ~$0.9M automation → +$0.5M net ops savings.\n\nNet effect:\n• Annual profit +$3.6–$4.1M; payback < 3 months; p95 decision latency < 2.5s.\n\nNext best actions:\n1) Roll out to “low‑risk/everyday spend” first; cap lift at +3.5pp.\n2) Add reviewer quality loops; weekly drift checks.\n3) Switch SaaS LLM calls to local inference to remove per‑call exposure/cost.\n\nNote: This demo shows one concise response; the live system supports multi‑turn what‑ifs and exports evidence (queries, cohort defs, and hash‑chained logs).`
+    plays: {
+      fraud_invest: `Executive blueprint — Double review budget (≈ +18 FTE‑eq)\n\nDiagnosis (last 90d):\n• Losses concentrated in fast‑swipe everyday spend; dispute win‑rate trailing peer median by ~7pp.\n• Reviewer throughput bottlenecked by evidence gathering and repeat merchants.\n\nActions (start this week):\n1) Route only high‑entropy cases to humans; enable Reviewer Assist (auto docs, merchant intel).\n2) Raise dispute quality: require three evidence artifacts; add pre‑submit checklist.\n3) Turn on velocity rules for repeat merchant abuse; quarantine cohorts for weekly review.\n\nMetrics to watch: chargeback win‑rate, cost per case, FPR/TPR drift.\nGuardrails: cap approval lift at +3.5pp; auto‑rollback if loss severity spikes.\n\nOwner/ETA/Impact:\n• Fraud Ops + Data (week 2 pilot).\n• Profit +$3.6–$4.1M/yr; payback < 3 months; p95 decision latency < 2.5s.`,
+      approval_lift: `Executive blueprint — Safe approval lift by segment\n\nWhere to lift:\n• Loyal, low‑dispute cohorts; mid‑ticket subscriptions; high‑history SMB.\n\nLevers:\n1) Lower threshold by 20–30bps for green cohorts; keep amber/red unchanged.\n2) Add RAG explanations in underwriting console to defend decisions.\n3) Weekly post‑decision audit on lifted approvals (n≥300) with loss backtest.\n\nExpected impact: +2.0–3.5pp approvals in green cohorts → +$1.6–$2.4M profit @45% margin.\nRisks & mitigations: drift → nightly challenger model, auto‑alerts if KS-stat > 0.08.`,
+      headcount: `Executive blueprint — Analyst headcount +10%\n\nPlan:\n• Use added capacity on edge clusters only; keep base traffic fully automated.\n• Stand up “playbook library” (refund abuse, first‑party, mule rings).\n\n30/60/90:\n• 30d: triage coverage 95%→99%; backlog cleared.\n• 60d: dispute win‑rate +4–6pp.\n• 90d: annualized fraud −$2.1–$2.8M; ops +$0.3–$0.5M.\nConfidence: high.`
+    }
   },
   retail: {
     name:'Retail',
     example:'If we add product‑return verification at point of sale, what’s the shrink reduction?',
     quick:[
       "Which stores need associate‑assist the most?",
-      "Forecast ROI if returns drop 15%"
+      "Forecast ROI if returns drop 15%",
+      "How do we cut false declines without raising risk?"
     ],
     kpis:[
       { key:'fraud', label:'Shrink Reduction', val:1.1, unit:'$M', badge:'g', src:'Returns risk, receipt matching, CCTV summaries' },
@@ -182,7 +188,11 @@ const INDUSTRIES = {
     guards:[
       'Edge inference in store or DC','No vendor LLM APIs','Customer PII stays on‑prem','Audit trail ties to POS events'
     ],
-    answer: `Executive readout — POS return verification\n\nWhat we change:\n• Real‑time return scoring (receipt match, device graph, historical behavior).\n• Camera snippet → LLM summary for high‑risk only; rest pass‑through.\n\nImpact (12m):\n• Shrink reduction: ~20–25% in pilot‑like stores → ~$1.0–$1.3M.\n• Ops savings: ~90k associate minutes avoided → ~$0.3–$0.4M.\n• Checkout approvals: false declines −12–18% → +$0.4–$0.6M contribution.\n\nNet:\n• Year‑one impact ~$1.7–$2.3M; ROI > 150% on typical fleet.\n\nNext best actions:\n1) Start with top 50 stores by shrink.\n2) Add loyalty‑aware overrides to protect CX.\n3) Weekly audit: 50 sampled cases with explanations and evidence bundles.\n\nNote: Single illustrative response; live system supports store‑level drill‑downs and evidence exports.`
+    plays: {
+      returns: `Executive blueprint — POS return verification\n\nWhat we change:\n• Real‑time return scoring (receipt match, device graph, behavior history).\n• High‑risk only → associate review with LLM show‑your‑work.\n\nExpected impact (12m):\n• Shrink reduction: 20–25% → ~$1.0–$1.3M.\n• Ops savings: ~90k minutes avoided → ~$0.3–$0.4M.\n• CX: protect loyal segments with one‑tap override + receipt scan.\nNext best actions: deploy to top‑50 shrink stores first; weekly audit pack of 50 cases.`,
+      associate: `Executive blueprint — Associate‑assist coverage\n\nPrioritize:\n• Stores with low conversion + long exception times.\n\nPlay:\n1) Triage exceptions; push policy snippets + prior resolutions to handheld.\n2) Add “one‑tap” creditor call scripts.\nImpact: +0.3–0.6pp conversion; labor −5–8% on exception minutes.`,
+      declines: `Executive blueprint — Reduce false declines safely\n\nSteps:\n1) Loyalty‑aware override for green customers; cap risk score bump at 15bps.\n2) Add second‑look queue for high‑basket carts.\nImpact: approvals +1–2pp; margin +$0.4–$0.6M; risk held flat by cohort caps.`
+    }
   },
   legal: {
     name:'Legal',
@@ -190,6 +200,7 @@ const INDUSTRIES = {
     quick:[
       "Where do we lose most review hours?",
       "What clauses have lowest precision today?",
+      "What’s a 30/60/90 for rollout?"
     ],
     kpis:[
       { key:'fraud', label:'Review Hours Saved', val:28, unit:'k', badge:'g', src:'Matter logs, clause recall/precision benchmarks' },
@@ -200,8 +211,31 @@ const INDUSTRIES = {
     guards:[
       'Work product never leaves firm VLAN','No external calls','Privileged docs encrypted at rest','Every query logged for QA'
     ],
-    answer: `Executive readout — Contract clause extraction at scale\n\nWhat’s deployed:\n• Local LLMs extract/normalize ~120 canonical clauses; RAG against firm precedent.\n• Confidence routing sends low‑confidence to associates with inline citations.\n\nImpact (12m):\n• Review hours saved: ~24k–32k; cycle time −12–16 days/matter.\n• Error rate: clause recall +9–12pp; standardized playbooks reduce rework.\n• Ops savings: ~$1.8–$2.4M equivalent; throughput improves without increasing headcount.\n\nNet:\n• Modeled ROI ~170–200% with on‑prem GPUs; partner time reallocated to higher‑value work.\n\nNext best actions:\n1) Prioritize NDA/MSA templates; then top 10 bespoke riders.\n2) Monthly calibration set with redlines to tune precision.\n3) Turn on immutable audit packet for client‑facing assurance.\n\nNote: Single illustrative response; live system supports matter‑level drill‑downs and evidence exports.`
+    plays: {
+      clauses: `Executive blueprint — Contract clause extraction\n\nDeployed:\n• Local LLM extracts/normalizes ~120 canonical clauses; RAG cites prior matters.\n\nImpact (12m):\n• Review hours −24k–32k; cycle time −12–16 days/matter.\n• Error rate: recall +9–12pp; rework down materially.\n30/60/90: 30d pilot on NDAs/MSAs; 60d add riders; 90d firm‑wide with audit packets.`,
+      hours: `Executive blueprint — Cut review hours\n\nWhere we lose time:\n• Duplicative searches; inconsistent playbooks.\nFix:\n1) Central brief bank + one‑click citations;\n2) Confidence routing (low → associate);\n3) Daily calibration set.\nImpact: ~28k hrs saved; ~$2.2M equivalent.`,
+      quality: `Executive blueprint — Raise precision/recall\n\nSteps:\n1) Expand calibration set by +2k clauses;\n2) Add counter‑examples to prompt bank;\n3) Weekly threshold tuning by matter type.\nImpact: +6–10pp F1; fewer escalations; smoother client reviews.`
+    }
   }
+};
+
+// Lightweight intent routing per industry
+const ROUTES = {
+  banking:[
+    {match:/(review|budget|fraud|chargeback|dispute|loss)/i, key:'fraud_invest'},
+    {match:/(approval|segment|lift|decline)/i, key:'approval_lift'},
+    {match:/(analyst|headcount|staff|capacity)/i, key:'headcount'}
+  ],
+  retail:[
+    {match:/(return|pos|shrink|refund)/i, key:'returns'},
+    {match:/(associate|assist|training)/i, key:'associate'},
+    {match:/(false\s*decline|approval|conversion)/i, key:'declines'}
+  ],
+  legal:[
+    {match:/(clause|contract|extraction)/i, key:'clauses'},
+    {match:/(hours|cycle|turnaround|backlog)/i, key:'hours'},
+    {match:/(precision|recall|quality|accuracy)/i, key:'quality'}
+  ]
 };
 
 let current = 'banking';
@@ -238,7 +272,7 @@ function setIndustry(id){
   });
   // quick questions
   const quick = $('#quick'); quick.innerHTML='';
-  cfg.quick.forEach((qtxt,i)=>{
+  cfg.quick.forEach((qtxt)=>{
     const b = document.createElement('button');
     b.className='chip'; b.setAttribute('role','option'); b.setAttribute('aria-label', qtxt);
     b.textContent = qtxt;
@@ -248,6 +282,16 @@ function setIndustry(id){
   });
   // seed console placeholder
   $('#q').placeholder = cfg.example;
+}
+
+// Pick a play based on the question text
+function genResponse(industry, text){
+  const cfg = INDUSTRIES[industry];
+  const routes = ROUTES[industry] || [];
+  for(const r of routes){ if(r.match.test(text)) return cfg.plays[r.key]; }
+  // default: choose the first play deterministically
+  const firstKey = Object.keys(cfg.plays)[0];
+  return cfg.plays[firstKey];
 }
 
 // Streaming simulation
@@ -262,7 +306,7 @@ function appendMsg(who, txt){
       bubble.textContent = txt.slice(0, ++i);
       log.scrollTop = log.scrollHeight;
       if(i>=txt.length) clearInterval(timer);
-    }, 15);
+    }, 12);
   } else {
     bubble.textContent = txt;
   }
@@ -276,8 +320,8 @@ function ask(){
 function askFrom(text){
   appendMsg('you', text);
   $('#q').value=''; $('#q').focus();
-  const a = INDUSTRIES[current].answer;
-  setTimeout(()=> appendMsg('ai', a), 220);
+  const a = genResponse(current, text);
+  setTimeout(()=> appendMsg('ai', a), 180);
 }
 
 // Tabs interactions (click + keyboard arrows)
